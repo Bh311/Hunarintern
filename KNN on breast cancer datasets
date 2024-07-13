@@ -1,0 +1,79 @@
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+# Load the dataset
+file_path = 'breast cancer.csv'
+data = pd.read_csv(file_path)
+
+# Data preprocessing
+
+# Drop the 'id' column
+data = data.drop(columns=['id'])
+
+# Encode the 'diagnosis' column: M -> 1, B -> 0
+data['diagnosis'] = data['diagnosis'].map({'M': 1, 'B': 0})
+
+# Separate features and target
+X = data.drop(columns=['diagnosis'])
+y = data['diagnosis']
+
+# Normalize the features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Split the dataset into training (80%) and testing (20%) sets
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+# Initialize K-NN with k=5
+k = 5
+knn = KNeighborsClassifier(n_neighbors=k)
+
+# Train the model
+knn.fit(X_train, y_train)
+
+# Predict on the testing set
+y_pred = knn.predict(X_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+
+print(f'Performance with k={k}:')
+print(f'Accuracy: {accuracy:.2f}')
+print(f'Precision: {precision:.2f}')
+print(f'Recall: {recall:.2f}')
+print(f'F1 Score: {f1:.2f}')
+
+# Evaluate the model with different values of k
+performance_metrics = {}
+
+for k in range(1, 21):
+    knn = KNeighborsClassifier(n_neighbors=k)
+    knn.fit(X_train, y_train)
+    y_pred = knn.predict(X_test)
+    
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+    
+    performance_metrics[k] = {
+        'accuracy': accuracy,
+        'precision': precision,
+        'recall': recall,
+        'f1': f1
+    }
+
+# Print performance metrics for different values of k
+for k, metrics in performance_metrics.items():
+    print(f'Performance with k={k}:')
+    print(f'Accuracy: {metrics["accuracy"]:.2f}')
+    print(f'Precision: {metrics["precision"]:.2f}')
+    print(f'Recall: {metrics["recall"]:.2f}')
+    print(f'F1 Score: {metrics["f1"]:.2f}')
+    print('---')
